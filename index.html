@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>台所ノート</title>
+<link rel="icon" href="icon.jpg">
+<link rel="apple-touch-icon" href="icon.jpg">
+<meta name="theme-color" content="#3F7D95">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EF;
+    --surface:#FFFFFF;
+    --ink:#26241F;
+    --ink-soft:#6B675E;
+    --line:#E6DFCF;
+    --blue:#3F7D95;
+    --blue-deep:#2E5F72;
+    --spice:#C97A34;
+    --danger:#B4503F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans JP',sans-serif;
+    padding-bottom:76px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3{font-family:'Shippori Mincho',serif;margin:0;}
+  header.app-header{
+    display:flex;align-items:center;gap:10px;
+    padding:18px 16px 14px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:10;
+  }
+  header.app-header img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+  header.app-header h1{font-size:20px;font-weight:700;color:var(--blue-deep);}
+  main{padding:16px;max-width:520px;margin:0 auto;}
+
+  /* --- 検索・フィルタ --- */
+  .search-row{display:flex;gap:8px;margin-bottom:12px;}
+  input[type=text],input[type=password],textarea,select{
+    width:100%;
+    font-family:inherit;font-size:15px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--surface);
+    color:var(--ink);
+  }
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{
+    padding:6px 12px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-soft);font-size:13px;cursor:pointer;
+  }
+  .chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+  /* --- レシピカード --- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:5px solid var(--blue);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    cursor:pointer;
+  }
+  .card h3{font-size:17px;color:var(--ink);margin-bottom:4px;}
+  .card .meta{font-size:12.5px;color:var(--ink-soft);}
+  .tag-mini{display:inline-block;background:#F1E8D8;color:var(--spice);border-radius:999px;padding:2px 9px;font-size:11.5px;margin-right:5px;}
+
+  .empty{
+    text-align:center;color:var(--ink-soft);padding:60px 20px;line-height:1.9;
+  }
+
+  /* --- フォーム --- */
+  label{display:block;font-size:13px;color:var(--ink-soft);margin:16px 0 6px;}
+  label:first-child{margin-top:0;}
+  .ing-row{display:flex;gap:8px;margin-bottom:8px;}
+  .ing-row input{flex:1;}
+  .row-btn{
+    background:none;border:1px solid var(--line);border-radius:8px;
+    width:38px;flex-shrink:0;color:var(--ink-soft);font-size:16px;
+  }
+  .add-line{
+    display:block;width:100%;padding:10px;margin-top:4px;
+    background:#F1E8D8;color:var(--spice);border:none;border-radius:10px;font-size:14px;
+  }
+  textarea{min-height:120px;resize:vertical;line-height:1.7;}
+
+  /* --- ボタン --- */
+  .btn{
+    display:inline-block;width:100%;text-align:center;
+    padding:13px;border-radius:10px;border:none;font-size:15.5px;font-weight:500;
+    font-family:inherit;cursor:pointer;
+  }
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-ghost{background:none;border:1px solid var(--line);color:var(--ink-soft);}
+  .btn-row{display:flex;gap:10px;margin-top:22px;}
+  .btn-row .btn{flex:1;}
+
+  .back{
+    display:inline-flex;align-items:center;gap:4px;
+    color:var(--blue-deep);font-size:14px;margin-bottom:14px;background:none;border:none;font-family:inherit;padding:0;cursor:pointer;
+  }
+
+  /* --- 詳細ページ --- */
+  .detail h2{font-size:22px;margin-bottom:6px;}
+  .detail .meta{color:var(--ink-soft);font-size:13px;margin-bottom:16px;}
+  .section-title{font-size:14px;color:var(--blue-deep);font-weight:700;margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+  .ing-list{list-style:none;padding:0;margin:0;}
+  .ing-list li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px;}
+  .ing-list li span:last-child{color:var(--ink-soft);}
+  .step-list{margin:0;padding-left:0;list-style:none;counter-reset:step;}
+  .step-list li{counter-increment:step;padding:10px 0 10px 34px;position:relative;font-size:15px;line-height:1.7;border-bottom:1px dashed var(--line);}
+  .step-list li::before{
+    content:counter(step);position:absolute;left:0;top:9px;
+    width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;
+    font-size:12px;display:flex;align-items:center;justify-content:center;
+  }
+  .memo-box{background:#F7F2E7;border-radius:10px;padding:12px 14px;font-size:14px;color:var(--ink-soft);line-height:1.7;margin-top:8px;}
+
+  /* --- 設定 --- */
+  .hint{font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-top:6px;}
+  .status-box{
+    padding:12px 14px;border-radius:10px;font-size:13.5px;margin-bottom:16px;line-height:1.6;
+  }
+  .status-ok{background:#E8F2EC;color:#2F6B49;}
+  .status-err{background:#FBEAE6;color:var(--danger);}
+  .status-wait{background:#F1E8D8;color:var(--spice);}
+
+  /* --- ローディング --- */
+  .loading{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:14px;padding:20px 0;}
+  .spinner{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--line);border-top-color:var(--blue);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* --- 下部ナビ --- */
+  nav.bottom{
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--surface);border-top:1px solid var(--line);
+    display:flex;z-index:10;
+  }
+  nav.bottom button{
+    flex:1;background:none;border:none;padding:11px 0 9px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--ink-soft);font-family:inherit;font-size:11.5px;
+  }
+  nav.bottom button.active{color:var(--blue-deep);font-weight:700;}
+  nav.bottom svg{width:21px;height:21px;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <img src="icon.jpg" alt="台所ノート">
+  <h1>台所ノート</h1>
+</header>
+
+<main id="app"></main>
+
+<nav class="bottom">
+  <button data-view="home" id="nav-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+    ホーム
+  </button>
+  <button data-view="form" id="nav-add">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    追加
+  </button>
+  <button data-view="settings" id="nav-settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    設定
+  </button>
+</nav>
+
+<script>
+/* =========================================================
+   台所ノート ― 自分専用レシピ帳
+   データの保存先は GitHub リポジトリ内の data/recipes.json
+   GitHub の Contents API を Personal Access Token で叩いて
+   読み書きします。サーバーは使わず、このHTML1枚だけで動きます。
+   ========================================================= */
+
+const CONFIG_KEY = 'daidokoro_config_v1';
+let recipes = [];      // レシピ一覧（メモリ上のコピー）
+let fileSha = null;    // recipes.json の現在の sha（更新に必要）
+let view = 'home';     // home / detail / form / settings
+let currentId = null;  // detail / form(編集時) で使う対象レシピID
+let searchText = '';
+let activeCategory = 'すべて';
+let loaded = false;    // GitHubからの読み込みが済んだか
+
+const app = document.getElementById('app');
+
+/* ---------- 設定の保存・読み込み ---------- */
+function getConfig(){
+  try{ return JSON.parse(localStorage.getItem(CONFIG_KEY) || 'null'); }
+  catch(e){ return null; }
+}
+function saveConfig(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+function configReady(){
+  const c = getConfig();
+  return !!(c && c.owner && c.repo && c.token);
+}
+
+/* ---------- UTF-8対応 base64 ---------- */
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+    (m,p1) => String.fromCharCode('0x' + p1)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(atob(str).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+}
+
+/* ---------- GitHub API ---------- */
+function apiUrl(){
+  const c = getConfig();
+  return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/data/recipes.json`;
+}
+function apiHeaders(){
+  const c = getConfig();
+  return {
+    'Authorization': `token ${c.token}`,
+    'Accept': 'application/vnd.github+json'
+  };
+}
+
+async function loadRecipes(){
+  const res = await fetch(apiUrl(), { headers: apiHeaders() });
+  if(res.status === 404){
+    recipes = []; fileSha = null; loaded = true; return;
+  }
+  if(res.status === 401){
+    throw new Error('トークンが正しくないか、期限切れです。設定を確認してください。');
+  }
+  if(!res.ok){
+    throw new Error(`読み込みに失敗しました（コード ${res.status}）`);
+  }
+  const data = await res.json();
+  fileSha = data.sha;
+  const jsonStr = b64DecodeUnicode(data.content.replace(/\n/g,''));
+  recipes = jsonStr.trim() ? JSON.parse(jsonStr) : [];
+  loaded = true;
+}
+
+async function persistRecipes(message){
+  const body = {
+    message,
+    content: b64EncodeUnicode(JSON.stringify(recipes, null, 2))
+  };
+  if(fileSha) body.sha = fileSha;
+  const res = await fetch(apiUrl(), {
+    method: 'PUT',
+    headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`保存に失敗しました（コード ${res.status}）${err.message || ''}`);
+  }
+  const data = await res.json();
+  fileSha = data.content.sha;
+}
+
+/* ---------- ルーティング ---------- */
+function goto(v, id){
+  view = v; currentId = id || null;
+  render();
+  window.scrollTo(0,0);
+}
+
+document.getElementById('nav-home').onclick = () => goto('home');
+document.getElementById('nav-add').onclick = () => goto('form');
+document.getElementById('nav-settings').onclick = () => goto('settings');
+
+/* ---------- 描画のふりわけ ---------- */
+async function render(){
+  document.querySelectorAll('nav.bottom button').forEach(b => b.classList.remove('active'));
+  const navMap = {home:'nav-home', form:'nav-add', settings:'nav-settings'};
+  if(navMap[view]) document.getElementById(navMap[view]).classList.add('active');
+
+  if(view === 'settings'){ renderSettings(); return; }
+
+  if(!configReady()){
+    app.innerHTML = `
+      <div class="empty">
+        まだ GitHub の接続設定がされていません。<br>
+        「設定」タブからリポジトリ情報を入力してください。
+      </div>`;
+    return;
+  }
+
+  if(!loaded){
+    app.innerHTML = `<div class="loading"><div class="spinner"></div>読み込み中…</div>`;
+    try{ await loadRecipes(); }
+    catch(e){
+      app.innerHTML = `<div class="status-box status-err">${escapeHtml(e.message)}</div>`;
+      return;
+    }
+  }
+
+  if(view === 'home') renderHome();
+  else if(view === 'detail') renderDetail();
+  else if(view === 'form') renderForm();
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------- ホーム（一覧・検索） ---------- */
+function renderHome(){
+  const categories = ['すべて', ...new Set(recipes.map(r => r.category).filter(Boolean))];
+
+  let filtered = recipes.filter(r => {
+    const inCategory = activeCategory === 'すべて' || r.category === activeCategory;
+    const haystack = [r.title, ...(r.ingredients||[]).map(i=>i.name), ...(r.tags||[])].join(' ').toLowerCase();
+    const matchesText = !searchText || haystack.includes(searchText.toLowerCase());
+    return inCategory && matchesText;
+  }).sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+
+  app.innerHTML = `
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="レシピ名・材料・タグで検索" value="${escapeHtml(searchText)}">
+    </div>
+    <div class="chip-row">
+      ${categories.map(c => `<span class="chip ${c===activeCategory?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}
+    </div>
+    <div id="list">
+      ${filtered.length === 0
+        ? `<div class="empty">${recipes.length===0
+            ? '最初のレシピを「追加」タブから記録してみましょう。'
+            : '当てはまるレシピが見つかりませんでした。'}</div>`
+        : filtered.map(cardHtml).join('')}
+    </div>
+  `;
+
+  document.getElementById('search-input').oninput = (e) => {
+    searchText = e.target.value; renderHome();
+  };
+  document.querySelectorAll('.chip').forEach(el => {
+    el.onclick = () => { activeCategory = el.dataset.cat; renderHome(); };
+  });
+  document.querySelectorAll('.card').forEach(el => {
+    el.onclick = () => goto('detail', el.dataset.id);
+  });
+}
+
+function cardHtml(r){
+  const tagHtml = (r.tags||[]).slice(0,3).map(t => `<span class="tag-mini">${escapeHtml(t)}</span>`).join('');
+  return `
+    <div class="card" data-id="${r.id}">
+      <h3>${escapeHtml(r.title)}</h3>
+      <div class="meta">${escapeHtml(r.category || '未分類')} ・ 材料${(r.ingredients||[]).length}点</div>
+      ${tagHtml ? `<div style="margin-top:8px;">${tagHtml}</div>` : ''}
+    </div>`;
+}
+
+/* ---------- 詳細 ---------- */
+function renderDetail(){
+  const r = recipes.find(x => x.id === currentId);
+  if(!r){ goto('home'); return; }
+
+  app.innerHTML = `
+    <button class="back" id="back-btn">← ホームへ戻る</button>
+    <div class="detail">
+      <h2>${escapeHtml(r.title)}</h2>
+      <div class="meta">${escapeHtml(r.category || '未分類')}${r.tags && r.tags.length ? ' ・ ' + r.tags.map(escapeHtml).join(', ') : ''}</div>
+
+      <div class="section-title">材料</div>
+      <ul class="ing-list">
+        ${(r.ingredients||[]).map(i => `<li><span>${escapeHtml(i.name)}</span><span>${escapeHtml(i.amount||'')}</span></li>`).join('') || '<li>（材料の記録なし）</li>'}
+      </ul>
+
+      <div class="section-title">作り方</div>
+      <ol class="step-list">
+        ${(r.steps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('') || '<li>（手順の記録なし）</li>'}
+      </ol>
+
+      ${r.memo ? `<div class="section-title">メモ</div><div class="memo-box">${escapeHtml(r.memo)}</div>` : ''}
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="edit-btn">編集する</button>
+        <button class="btn btn-danger" id="delete-btn">削除する</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('back-btn').onclick = () => goto('home');
+  document.getElementById('edit-btn').onclick = () => goto('form', r.id);
+  document.getElementById('delete-btn').onclick = () => deleteRecipe(r.id);
+}
+
+async function deleteRecipe(id){
+  if(!confirm('このレシピを削除します。よろしいですか？')) return;
+  const idx = recipes.findIndex(r => r.id === id);
+  if(idx === -1) return;
+  const backup = recipes;
+  recipes = recipes.filter(r => r.id !== id);
+  app.innerHTML = `<div class="loading"><div class="spinner"></div>削除中…</div>`;
+  try{
+    await persistRecipes(`delete: ${backup[idx].title}`);
+    goto('home');
+  }catch(e){
+    recipes = backup;
+    app.innerHTML = `<div class="status-box status-err">${escapeHtml(e.message)}</div>
+      <button class="btn btn-ghost" id="back-btn2">戻る</button>`;
+    document.getElementById('back-btn2').onclick = () => goto('detail', id);
+  }
+}
+
+/* ---------- 追加・編集フォーム ---------- */
+function renderForm(){
+  const editing = recipes.find(x => x.id === currentId) || null;
+  const draft = editing
+    ? JSON.parse(JSON.stringify(editing))
+    : { id: null, title:'', category:'', tags:[], ingredients:[{name:'',amount:''}], steps:[''], memo:'' };
+
+  const categoryOptions = [...new Set(recipes.map(r => r.category).filter(Boolean))];
+
+  app.innerHTML = `
+    <button class="back" id="back-btn">← ${editing ? '詳細へ戻る' : 'ホームへ戻る'}</button>
+    <h2 style="font-size:19px;margin-bottom:6px;">${editing ? 'レシピを編集' : '新しいレシピを追加'}</h2>
+
+    <label>料理名</label>
+    <input type="text" id="f-title" value="${escapeHtml(draft.title)}" placeholder="例）鶏の照り焼き">
+
+    <label>カテゴリ</label>
+    <input type="text" id="f-category" list="cat-list" value="${escapeHtml(draft.category)}" placeholder="例）主菜・和食">
+    <datalist id="cat-list">${categoryOptions.map(c=>`<option value="${escapeHtml(c)}">`).join('')}</datalist>
+
+    <label>タグ（カンマ区切り）</label>
+    <input type="text" id="f-tags" value="${escapeHtml((draft.tags||[]).join(', '))}" placeholder="例）時短, お弁当, 冷凍OK">
+
+    <label>材料</label>
+    <div id="ing-wrap">
+      ${draft.ingredients.map((i, idx) => ingRowHtml(i, idx)).join('')}
+    </div>
+    <button type="button" class="add-line" id="add-ing">＋ 材料を追加</button>
+
+    <label>作り方（1行に1手順）</label>
+    <textarea id="f-steps" placeholder="鶏肉に下味をつける
+フライパンで両面焼く
+タレを絡めて仕上げる">${escapeHtml((draft.steps||[]).join('\n'))}</textarea>
+
+    <label>メモ（任意）</label>
+    <textarea id="f-memo" style="min-height:70px;" placeholder="次はもう少し甘めでも良いかも、など">${escapeHtml(draft.memo||'')}</textarea>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="cancel-btn">キャンセル</button>
+      <button class="btn btn-primary" id="save-btn">${editing ? '更新する' : '保存する'}</button>
+    </div>
+    <div id="form-status"></div>
+  `;
+
+  document.getElementById('back-btn').onclick = () => editing ? goto('detail', editing.id) : goto('home');
+  document.getElementById('cancel-btn').onclick = () => editing ? goto('detail', editing.id) : goto('home');
+
+  document.getElementById('add-ing').onclick = () => {
+    const wrap = document.getElementById('ing-wrap');
+    const idx = wrap.children.length;
+    wrap.insertAdjacentHTML('beforeend', ingRowHtml({name:'',amount:''}, idx));
+    bindIngRemove();
+  };
+  bindIngRemove();
+
+  document.getElementById('save-btn').onclick = () => saveForm(draft.id);
+
+  function bindIngRemove(){
+    document.querySelectorAll('.ing-remove').forEach(btn => {
+      btn.onclick = () => {
+        const wrap = document.getElementById('ing-wrap');
+        if(wrap.children.length > 1) btn.closest('.ing-row').remove();
+      };
+    });
+  }
+}
+
+function ingRowHtml(i, idx){
+  return `
+    <div class="ing-row" data-idx="${idx}">
+      <input type="text" class="ing-name" placeholder="材料名" value="${escapeHtml(i.name)}">
+      <input type="text" class="ing-amount" placeholder="分量" value="${escapeHtml(i.amount||'')}" style="max-width:100px;">
+      <button type="button" class="row-btn ing-remove">×</button>
+    </div>`;
+}
+
+async function saveForm(existingId){
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){ alert('料理名を入力してください。'); return; }
+
+  const category = document.getElementById('f-category').value.trim();
+  const tags = document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const ingredients = [...document.querySelectorAll('.ing-row')].map(row => ({
+    name: row.querySelector('.ing-name').value.trim(),
+    amount: row.querySelector('.ing-amount').value.trim()
+  })).filter(i => i.name);
+  const steps = document.getElementById('f-steps').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const memo = document.getElementById('f-memo').value.trim();
+
+  const now = new Date().toISOString();
+  const backup = recipes;
+
+  if(existingId){
+    recipes = recipes.map(r => r.id === existingId
+      ? { ...r, title, category, tags, ingredients, steps, memo, updatedAt: now }
+      : r);
+  } else {
+    const newRecipe = {
+      id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      title, category, tags, ingredients, steps, memo,
+      createdAt: now, updatedAt: now
+    };
+    recipes = [...recipes, newRecipe];
+    existingId = newRecipe.id;
+  }
+
+  const statusEl = document.getElementById('form-status');
+  statusEl.innerHTML = `<div class="loading"><div class="spinner"></div>GitHubに保存中…</div>`;
+  try{
+    await persistRecipes(`${backup.find(r=>r.id===existingId) ? 'update' : 'add'}: ${title}`);
+    goto('detail', existingId);
+  }catch(e){
+    recipes = backup;
+    statusEl.innerHTML = `<div class="status-box status-err">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+/* ---------- 設定画面 ---------- */
+function renderSettings(){
+  const c = getConfig() || { owner:'', repo:'', token:'' };
+  app.innerHTML = `
+    <h2 style="font-size:19px;margin-bottom:4px;">GitHubの接続設定</h2>
+    <p class="hint">このアプリはあなたのGitHubリポジトリをデータの保存先として使います。下の3つを入力してください。</p>
+
+    <label>GitHubユーザー名</label>
+    <input type="text" id="s-owner" value="${escapeHtml(c.owner)}" placeholder="例）taro-yamada">
+
+    <label>リポジトリ名</label>
+    <input type="text" id="s-repo" value="${escapeHtml(c.repo)}" placeholder="例）daidokoro-note">
+
+    <label>Personal Access Token</label>
+    <input type="password" id="s-token" value="${escapeHtml(c.token)}" placeholder="ghp_ から始まる文字列">
+    <p class="hint">
+      トークンはこの端末のブラウザ内だけに保存され、GitHub以外には送信されません。
+      「Contents: Read and write」権限を付けた、このリポジトリ専用のトークンを推奨します。
+      リポジトリは Private（非公開）にしておくとより安心です。
+    </p>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="s-save">保存して接続確認</button>
+    </div>
+    <div id="s-status"></div>
+  `;
+
+  if(configReady()){
+    document.getElementById('s-status').innerHTML =
+      `<div class="status-box status-ok" style="margin-top:16px;">現在このリポジトリに接続する設定になっています：${escapeHtml(c.owner)}/${escapeHtml(c.repo)}</div>`;
+  }
+
+  document.getElementById('s-save').onclick = async () => {
+    const owner = document.getElementById('s-owner').value.trim();
+    const repo = document.getElementById('s-repo').value.trim();
+    const token = document.getElementById('s-token').value.trim();
+    if(!owner || !repo || !token){ alert('3つとも入力してください。'); return; }
+
+    saveConfig({owner, repo, token});
+    loaded = false; // 次回読み込み時にGitHubへ再アクセスする
+
+    const statusEl = document.getElementById('s-status');
+    statusEl.innerHTML = `<div class="loading"><div class="spinner"></div>接続を確認中…</div>`;
+    try{
+      await loadRecipes();
+      statusEl.innerHTML = `<div class="status-box status-ok">接続できました。「ホーム」タブからレシピを確認できます。（現在 ${recipes.length} 件）</div>`;
+    }catch(e){
+      statusEl.innerHTML = `<div class="status-box status-err">${escapeHtml(e.message)}</div>`;
+    }
+  };
+}
+
+/* ---------- 起動 ---------- */
+render();
+</script>
+</body>
+</html>
