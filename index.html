@@ -324,35 +324,53 @@ function escapeHtml(s){
 function renderHome(){
   const categories = ['すべて', ...new Set(recipes.map(r => r.category).filter(Boolean))];
 
-  let filtered = recipes.filter(r => {
+  app.innerHTML = `
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="レシピ名・材料・タグで検索" value="${escapeHtml(searchText)}">
+    </div>
+    <div class="chip-row" id="chip-row">
+      ${categories.map(c => `<span class="chip ${c===activeCategory?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}
+    </div>
+    <div id="list"></div>
+  `;
+
+  // 検索入力欄はここで作った後は作り直さない（作り直すとフォーカスが外れて
+  // スマホのキーボードが閉じてしまい、1文字しか入力できなくなるため）
+  document.getElementById('search-input').oninput = (e) => {
+    searchText = e.target.value;
+    updateList();
+  };
+  bindChipEvents();
+  updateList();
+}
+
+function bindChipEvents(){
+  document.querySelectorAll('#chip-row .chip').forEach(el => {
+    el.onclick = () => {
+      activeCategory = el.dataset.cat;
+      document.querySelectorAll('#chip-row .chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      updateList();
+    };
+  });
+}
+
+// リスト部分だけを再描画する（検索・カテゴリ切り替え時はこちらだけを呼ぶ）
+function updateList(){
+  const filtered = recipes.filter(r => {
     const inCategory = activeCategory === 'すべて' || r.category === activeCategory;
     const haystack = [r.title, ...(r.ingredients||[]).map(i=>i.name), ...(r.tags||[])].join(' ').toLowerCase();
     const matchesText = !searchText || haystack.includes(searchText.toLowerCase());
     return inCategory && matchesText;
   }).sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
 
-  app.innerHTML = `
-    <div class="search-row">
-      <input type="text" id="search-input" placeholder="レシピ名・材料・タグで検索" value="${escapeHtml(searchText)}">
-    </div>
-    <div class="chip-row">
-      ${categories.map(c => `<span class="chip ${c===activeCategory?'active':''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}
-    </div>
-    <div id="list">
-      ${filtered.length === 0
-        ? `<div class="empty">${recipes.length===0
-            ? '最初のレシピを「追加」タブから記録してみましょう。'
-            : '当てはまるレシピが見つかりませんでした。'}</div>`
-        : filtered.map(cardHtml).join('')}
-    </div>
-  `;
+  const listEl = document.getElementById('list');
+  listEl.innerHTML = filtered.length === 0
+    ? `<div class="empty">${recipes.length===0
+        ? '最初のレシピを「追加」タブから記録してみましょう。'
+        : '当てはまるレシピが見つかりませんでした。'}</div>`
+    : filtered.map(cardHtml).join('');
 
-  document.getElementById('search-input').oninput = (e) => {
-    searchText = e.target.value; renderHome();
-  };
-  document.querySelectorAll('.chip').forEach(el => {
-    el.onclick = () => { activeCategory = el.dataset.cat; renderHome(); };
-  });
   document.querySelectorAll('.card').forEach(el => {
     el.onclick = () => goto('detail', el.dataset.id);
   });
